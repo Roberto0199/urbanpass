@@ -3,6 +3,8 @@ package com.urbanpass.urbanpass.service;
 import com.urbanpass.urbanpass.dto.CreateUserRequest;
 import com.urbanpass.urbanpass.dto.UserResponse;
 import com.urbanpass.urbanpass.entity.User;
+import com.urbanpass.urbanpass.exception.BusinessException;
+import com.urbanpass.urbanpass.exception.ResourceNotFoundException;
 import com.urbanpass.urbanpass.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +27,7 @@ public class UserService {
 
         // Verificar que el email no esté registrado
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("Ya existe un usuario con ese email.");
+            throw new BusinessException("Ya existe un usuario con ese email.");
         }
 
         User user = User.builder()
@@ -43,7 +45,7 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserResponse getUserById(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario", id));
         return toResponse(user);
     }
 

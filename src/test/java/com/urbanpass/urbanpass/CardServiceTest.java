@@ -14,6 +14,8 @@ import com.urbanpass.urbanpass.repository.TransactionRepository;
 import com.urbanpass.urbanpass.repository.UserRepository;
 import com.urbanpass.urbanpass.service.CardService;
 import com.urbanpass.urbanpass.service.TransactionHelper;
+import com.urbanpass.urbanpass.exception.BusinessException;
+import com.urbanpass.urbanpass.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -109,7 +111,7 @@ class CardServiceTest {
         when(cardRepository.findById(1L)).thenReturn(Optional.of(testCard));
 
         // ACT & ASSERT
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(BusinessException.class, () -> {
             cardService.recharge(1L, request);
         });
 
@@ -126,7 +128,7 @@ class CardServiceTest {
         request.setAmount(new BigDecimal("30.00"));
 
         // ACT & ASSERT
-        assertThrows(RuntimeException.class, () -> {
+        assertThrows(ResourceNotFoundException.class, () -> {
             cardService.recharge(99L, request);
         });
     }
@@ -170,7 +172,7 @@ class CardServiceTest {
         when(stationRepository.findById(1L)).thenReturn(Optional.of(testStation));
 
         // ACT & ASSERT
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(BusinessException.class, () -> {
             cardService.validateCard(1L, request);
         });
 
@@ -190,7 +192,7 @@ class CardServiceTest {
         when(stationRepository.findById(1L)).thenReturn(Optional.of(testStation));
 
         // ACT & ASSERT
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(BusinessException.class, () -> {
             cardService.validateCard(1L, request);
         });
     }
@@ -220,7 +222,7 @@ class CardServiceTest {
         when(cardRepository.findById(1L)).thenReturn(Optional.of(testCard));
 
         // ACT & ASSERT
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(BusinessException.class, () -> {
             cardService.blockCard(1L);
         });
     }

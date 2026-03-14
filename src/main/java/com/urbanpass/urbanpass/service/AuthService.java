@@ -4,6 +4,8 @@ import com.urbanpass.urbanpass.dto.AuthResponse;
 import com.urbanpass.urbanpass.dto.LoginRequest;
 import com.urbanpass.urbanpass.dto.RegisterRequest;
 import com.urbanpass.urbanpass.entity.User;
+import com.urbanpass.urbanpass.exception.BusinessException;
+import com.urbanpass.urbanpass.exception.ResourceNotFoundException;
 import com.urbanpass.urbanpass.repository.UserRepository;
 import com.urbanpass.urbanpass.security.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +25,7 @@ public class AuthService {
 
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("El email ya está registrado.");
+            throw new BusinessException("El email ya está registrado.");
         }
 
         User user = User.builder()
@@ -48,7 +50,7 @@ public class AuthService {
         );
 
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado."));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado."));
 
         String token = jwtService.generateToken(user.getEmail());
         return new AuthResponse(token, user.getEmail(), user.getName());

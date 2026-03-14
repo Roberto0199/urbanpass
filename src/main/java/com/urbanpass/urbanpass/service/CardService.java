@@ -1,6 +1,8 @@
 package com.urbanpass.urbanpass.service;
 
 import com.urbanpass.urbanpass.dto.*;
+import com.urbanpass.urbanpass.exception.BusinessException;
+import com.urbanpass.urbanpass.exception.ResourceNotFoundException;
 import com.urbanpass.urbanpass.entity.Card;
 import com.urbanpass.urbanpass.entity.Station;
 import com.urbanpass.urbanpass.entity.Transaction;
@@ -44,7 +46,7 @@ public class CardService {
         log.info("Emitiendo tarjeta para usuario ID: {}", userId);
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario", userId));
 
         Card card = Card.builder()
                 .user(user)
@@ -62,7 +64,7 @@ public class CardService {
     @Transactional(readOnly = true)
     public List<CardResponse> getCardsByUser(Long userId) {
         if (!userRepository.existsById(userId)) {
-            throw new RuntimeException("Usuario no encontrado: " + userId);
+            throw new ResourceNotFoundException("Usuario", userId);
         }
         return cardRepository.findByUserId(userId)
                 .stream()
@@ -96,10 +98,10 @@ public class CardService {
     public CardResponse recharge(Long cardId, RechargeRequest request) {
 
         Card card = cardRepository.findById(cardId)
-                .orElseThrow(() -> new RuntimeException("Tarjeta no encontrada: " + cardId));
+                .orElseThrow(() -> new ResourceNotFoundException("Tarjeta", cardId));
 
         if (!card.getStatus().equals(CardStatus.ACTIVE)) {
-            throw new IllegalArgumentException("La tarjeta no está activa.");
+            throw new BusinessException("La tarjeta no está activa.");
         }
 
         // PASO 1 — Actualizar saldo
@@ -132,29 +134,25 @@ public class CardService {
 
         // PASO 1 — Buscar sin lock para verificaciones rápidas
         Card card = cardRepository.findById(cardId)
-                .orElseThrow(() -> new RuntimeException("Tarjeta no encontrada: " + cardId));
+                .orElseThrow(() -> new ResourceNotFoundException("Tarjeta", cardId));
 
         Station station = stationRepository.findById(request.getStationId())
-                .orElseThrow(() -> new RuntimeException("Estación no encontrada: " + request.getStationId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Estación", request.getStationId()));
 
-        // PASO 2 — ¿La tarjeta está activa?
         if (!card.getStatus().equals(CardStatus.ACTIVE)) {
             transactionHelper.saveFailedTransaction(card, station, TARIFA, "Tarjeta bloqueada");
-            throw new IllegalArgumentException("La tarjeta está bloqueada o inactiva.");
+            throw new BusinessException("La tarjeta está bloqueada o inactiva.");
         }
 
-        // PASO 3 — ¿Tiene saldo suficiente?
         if (card.getBalance().compareTo(TARIFA) < 0) {
             transactionHelper.saveFailedTransaction(card, station, TARIFA, "Saldo insuficiente");
-            throw new IllegalArgumentException(
+            throw new BusinessException(
                     "Saldo insuficiente. Saldo actual: Q" + card.getBalance() + " | Requerido: Q" + TARIFA
             );
         }
 
-        // PASO 4 — Ahora sí usamos lock pesimista para descontar
-        // Solo llegamos aquí si la tarjeta está activa y tiene saldo
         Card lockedCard = cardRepository.findByIdWithLock(cardId)
-                .orElseThrow(() -> new RuntimeException("Tarjeta no encontrada: " + cardId));
+                .orElseThrow(() -> new ResourceNotFoundException("Tarjeta", cardId));
 
         lockedCard.setBalance(lockedCard.getBalance().subtract(TARIFA));
         cardRepository.save(lockedCard);
@@ -189,10 +187,10 @@ public class CardService {
         log.info("Bloqueando tarjeta ID: {}", cardId);
 
         Card card = cardRepository.findById(cardId)
-                .orElseThrow(() -> new RuntimeException("Tarjeta no encontrada: " + cardId));
+                .orElseThrow(() -> new ResourceNotFoundException("Tarjeta", cardId));
 
         if (card.getStatus().equals(CardStatus.BLOCKED)) {
-            throw new IllegalArgumentException("La tarjeta ya está bloqueada.");
+            throw new BusinessException("La tarjeta ya está bloqueada.");
         }
 
         card.setStatus(CardStatus.BLOCKED);
@@ -208,10 +206,10 @@ public class CardService {
         log.info("Desbloqueando tarjeta ID: {}", cardId);
 
         Card card = cardRepository.findById(cardId)
-                .orElseThrow(() -> new RuntimeException("Tarjeta no encontrada: " + cardId));
+                .orElseThrow(() -> new ResourceNotFoundException("Tarjeta", cardId));
 
         if (card.getStatus().equals(CardStatus.ACTIVE)) {
-            throw new IllegalArgumentException("La tarjeta ya está activa.");
+            throw new BusinessException("La tarjeta ya está activa.");
         }
 
         card.setStatus(CardStatus.ACTIVE);
@@ -225,7 +223,7 @@ public class CardService {
     public Page<TransactionResponse> getCardHistory(Long cardId, Pageable pageable) {
 
         if (!cardRepository.existsById(cardId)) {
-            throw new RuntimeException("Tarjeta no encontrada: " + cardId);
+            throw new ResourceNotFoundException("Tarjeta", cardId);
         }
 
         return transactionRepository
