@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -110,6 +111,7 @@ public class CardController {
             @ApiResponse(responseCode = "422", description = "La tarjeta ya está bloqueada",
                     content = @Content(schema = @Schema(implementation = com.urbanpass.urbanpass.exception.ErrorResponse.class)))
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{cardId}/block")
     public ResponseEntity<CardResponse> blockCard(
             @Parameter(description = "ID de la tarjeta", example = "1")
@@ -131,6 +133,7 @@ public class CardController {
             @ApiResponse(responseCode = "422", description = "La tarjeta ya está activa",
                     content = @Content(schema = @Schema(implementation = com.urbanpass.urbanpass.exception.ErrorResponse.class)))
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{cardId}/unblock")
     public ResponseEntity<CardResponse> unblockCard(
             @Parameter(description = "ID de la tarjeta", example = "1")
@@ -138,4 +141,4 @@ public class CardController {
 
         return ResponseEntity.ok(cardService.unblockCard(cardId));
     }
-}
+}git
