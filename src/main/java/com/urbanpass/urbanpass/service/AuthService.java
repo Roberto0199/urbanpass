@@ -4,6 +4,7 @@ import com.urbanpass.urbanpass.dto.AuthResponse;
 import com.urbanpass.urbanpass.dto.LoginRequest;
 import com.urbanpass.urbanpass.dto.RegisterRequest;
 import com.urbanpass.urbanpass.entity.User;
+import com.urbanpass.urbanpass.enums.Role;
 import com.urbanpass.urbanpass.exception.BusinessException;
 import com.urbanpass.urbanpass.exception.ResourceNotFoundException;
 import com.urbanpass.urbanpass.repository.UserRepository;
@@ -33,6 +34,7 @@ public class AuthService {
                 .email(request.getEmail())
                 .phone(request.getPhone())
                 .password(passwordEncoder.encode(request.getPassword()))
+                .role(Role.USER)
                 .build();
 
         userRepository.save(user);
