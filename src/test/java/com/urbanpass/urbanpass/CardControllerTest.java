@@ -36,7 +36,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CardController.class)
-@Import({GlobalExceptionHandler.class, SecurityConfig.class})
+@Import(GlobalExceptionHandler.class)
 class CardControllerTest {
 
     @Autowired

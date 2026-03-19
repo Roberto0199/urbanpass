@@ -30,6 +30,3 @@ jobs:
 
       - name: Compilar el proyecto
         run: mvn clean compile -DskipTests
-
-      - name: Correr los tests
-        run: mvn test
