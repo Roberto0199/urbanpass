@@ -1,113 +1,150 @@
-# 🚌 UrbanPass — Transit Card Validation System
+# UrbanPass — Sistema de Validación de Tarjetas de Transporte
 
-A professional backend REST API simulating a public transit card validation system, 
-inspired by real-world transit systems like Transmetro in Guatemala City.
+API REST backend que simula un sistema de tarjetas de transporte público,
+inspirado en sistemas reales como Transmetro en Ciudad de Guatemala.
 
-## 🛠️ Tech Stack
+![CI](https://github.com/Roberto0199/urbanpass/actions/workflows/ci.yml/badge.svg)
 
-- **Java 17**
-- **Spring Boot 3**
-- **MySQL 8**
-- **JPA / Hibernate**
-- **Lombok**
+---
 
-## ✨ Features
+##  Tech Stack
 
-- 👤 User registration and management
-- 💳 Card issuance per user
-- 💰 Balance recharge system
-- 🚪 Turnstile validation with automatic fare deduction
-- 🔒 Card blocking / unblocking
-- 📊 Full transaction history with pagination
-- 🔐 Pessimistic locking for concurrency control
-- 📝 Failed transaction audit trail
+- Java 17
+- Spring Boot 3.2.5
+- Spring Security + JWT
+- MySQL 8
+- JPA / Hibernate
+- Lombok
+- Swagger / OpenAPI
+- Docker + Docker Compose
 
-## 🗄️ Database Schema
-```
-users ──< cards ──< transactions
-              └──────────────────< stations
-```
+---
 
-## 🚀 Getting Started
+## Funcionalidades
 
-### Prerequisites
-- Java 17+
-- MySQL 8+
-- Maven
+- Registro y autenticación de usuarios con JWT
+- Roles de seguridad — ADMIN y USER
+- Emisión de tarjetas por usuario
+- Recarga de saldo
+- Validación en torniquete con descuento automático de tarifa
+- Bloqueo y desbloqueo de tarjetas (solo ADMIN)
+- Historial de transacciones con paginación
+- Auditoría de transacciones fallidas
+- Control de concurrencia con bloqueo pesimista
+- Documentación interactiva con Swagger UI
 
-### Setup
+---
 
-**1. Clone the repository**
+## Correr el proyecto con Docker
+
+### Prerequisitos
+- Docker Desktop instalado
+
+### Pasos
+
+**1. Clonar el repositorio**
 ```bash
 git clone https://github.com/Roberto0199/urbanpass.git
 cd urbanpass
 ```
 
-**2. Create the database**
-```sql
-CREATE DATABASE urbanpass_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
-
-**3. Configure credentials**
+**2. Crear el archivo de configuración**
 ```bash
 cp src/main/resources/application.properties.example src/main/resources/application.properties
 ```
-Edit `application.properties` with your MySQL credentials.
 
-**4. Run the application**
+**3. Levantar con Docker Compose**
 ```bash
-./mvnw spring-boot:run
+docker-compose up --build
 ```
-The API will be available at `http://localhost:8080`
 
-## 🌐 API Endpoints
+La API estará disponible en: `http://localhost:8080`
 
-### Users
-| Method | Endpoint | Description |
+---
+
+## Documentación — Swagger UI
+
+Una vez corriendo, entra a:
+```
+http://localhost:8080/swagger-ui/index.html
+```
+
+---
+
+## Credenciales por defecto
+
+Al iniciar la aplicación se crea automáticamente un usuario administrador:
+
+| Campo | Valor |
+|-------|-------|
+| Email | admin@urbanpass.gt |
+| Password | Admin1234! |
+| Rol | ADMIN |
+
+>  Cambia la contraseña en producción.
+
+---
+
+## Endpoints
+
+### Autenticación — públicos
+| Método | Endpoint | Descripción |
 |--------|----------|-------------|
-| POST | `/api/users` | Create user |
-| GET | `/api/users/{id}` | Get user |
-| GET | `/api/users` | List all users |
-| POST | `/api/users/{id}/cards` | Issue card |
-| GET | `/api/users/{id}/cards` | Get user cards |
+| POST | `/api/auth/register` | Registrar usuario |
+| POST | `/api/auth/login` | Iniciar sesión |
 
-### Cards
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/cards/{id}/recharge` | Recharge balance |
-| POST | `/api/cards/{id}/validate` | 🚪 Turnstile validation |
-| GET | `/api/cards/{id}/history` | Transaction history |
-| PATCH | `/api/cards/{id}/block` | Block card |
-| PATCH | `/api/cards/{id}/unblock` | Unblock card |
+### Usuarios
+| Método | Endpoint | Descripción | Rol |
+|--------|----------|-------------|-----|
+| POST | `/api/users` | Crear usuario | ADMIN |
+| GET | `/api/users` | Listar usuarios | ADMIN |
+| GET | `/api/users/{id}` | Ver usuario | USER |
+| POST | `/api/users/{id}/cards` | Emitir tarjeta | ADMIN |
+| GET | `/api/users/{id}/cards` | Ver tarjetas | USER |
 
-### Stations
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/stations` | List stations |
+### Tarjetas
+| Método | Endpoint | Descripción | Rol |
+|--------|----------|-------------|-----|
+| POST | `/api/cards/{id}/recharge` | Recargar saldo | USER |
+| POST | `/api/cards/{id}/validate` | Validar torniquete | USER |
+| GET | `/api/cards/{id}/history` | Historial | USER |
+| PATCH | `/api/cards/{id}/block` | Bloquear tarjeta | ADMIN |
+| PATCH | `/api/cards/{id}/unblock` | Desbloquear tarjeta | ADMIN |
 
-## 🔐 Concurrency Control
+### Estaciones
+| Método | Endpoint | Descripción | Rol |
+|--------|----------|-------------|-----|
+| GET | `/api/stations` | Listar estaciones | USER |
 
-The system uses **Pessimistic Locking** to prevent double charges 
-when the same card is validated simultaneously at multiple turnstiles.
+---
 
-Failed transactions are saved in a separate transaction 
-(`REQUIRES_NEW`) to ensure audit trail integrity even when 
-the main transaction rolls back.
+##  Esquema de base de datos
+```
+users ──< cards ──< transactions
+               └──────────────── stations
+```
 
-## 📊 Transaction Types
+---
 
-| Type | Description |
-|------|-------------|
-| `RECHARGE` | Balance top-up |
-| `VALIDATION` ✅ | Successful turnstile pass |
-| `VALIDATION` ❌ | Failed attempt (blocked card / insufficient balance) |
+##  Seguridad
 
-## 👨‍💻 Author
+- Autenticación stateless con JWT
+- Roles ADMIN y USER con `@PreAuthorize`
+- Bloqueo pesimista para evitar cobros dobles
+- Contraseñas encriptadas con BCrypt
 
-Roberto — Backend Developer
+---
+
+##  Tests
+
+- Tests unitarios del servicio con Mockito
+- Tests de controladores con MockMvc y `@WebMvcTest`
+- Cobertura de casos exitosos, errores de validación y control de acceso
+
+---
+
+## Autor
+**Roberto** — Backend Developer
 Guatemala 🇬🇹
-```
 
-Cuando lo pegues hacé clic en **Commit new file** abajo con el mensaje:
-```
-docs: add professional README
+[![GitHub](https://img.shields.io/badge/GitHub-Roberto0199-black?logo=github)](https://github.com/Roberto0199)
