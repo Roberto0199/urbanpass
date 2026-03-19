@@ -11,6 +11,7 @@ import com.urbanpass.urbanpass.exception.GlobalExceptionHandler;
 import com.urbanpass.urbanpass.exception.ResourceNotFoundException;
 import com.urbanpass.urbanpass.security.JwtAuthFilter;
 import com.urbanpass.urbanpass.security.JwtService;
+import com.urbanpass.urbanpass.security.SecurityConfig;
 import com.urbanpass.urbanpass.service.CardService;
 import com.urbanpass.urbanpass.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,7 +36,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(UserController.class)
-@Import(GlobalExceptionHandler.class)
+@Import({GlobalExceptionHandler.class, SecurityConfig.class})
 class UserControllerTest {
 
     @Autowired

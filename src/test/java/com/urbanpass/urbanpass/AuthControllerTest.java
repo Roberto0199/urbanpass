@@ -9,6 +9,7 @@ import com.urbanpass.urbanpass.exception.BusinessException;
 import com.urbanpass.urbanpass.exception.GlobalExceptionHandler;
 import com.urbanpass.urbanpass.security.JwtAuthFilter;
 import com.urbanpass.urbanpass.security.JwtService;
+import com.urbanpass.urbanpass.security.SecurityConfig;
 import com.urbanpass.urbanpass.service.AuthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(AuthController.class)
-@Import(GlobalExceptionHandler.class)
+@Import({GlobalExceptionHandler.class, SecurityConfig.class})
 class AuthControllerTest {
 
     @Autowired
