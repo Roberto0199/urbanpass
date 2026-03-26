@@ -6,10 +6,14 @@ import com.urbanpass.urbanpass.dto.UserResponse;
 import com.urbanpass.urbanpass.service.CardService;
 import com.urbanpass.urbanpass.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -43,9 +47,16 @@ public class UserController {
     @Operation(summary = "Listar todos los usuarios", description = "Solo administradores.")
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public ResponseEntity<List<UserResponse>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
+    public ResponseEntity<Page<UserResponse>> getAllUsers(
+        @Parameter(description = "Número de página (inicia en 0)", example = "0")
+        @RequestParam(defaultValue = "0") int page,
+        @Parameter(description = "Resultados por página", example = "10")
+        @RequestParam(defaultValue = "10") int size) {
+
+            Pageable pageable = PageRequest.of(page, size);
+            return ResponseEntity.ok(userService.getAllUsers(pageable));
     }
+
 
     @Operation(summary = "Emitir tarjeta a usuario", description = "Solo administradores.")
     @PreAuthorize("hasRole('ADMIN')")

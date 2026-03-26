@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.urbanpass.urbanpass.controller.UserController;
 import com.urbanpass.urbanpass.dto.CardResponse;
 import com.urbanpass.urbanpass.dto.CreateUserRequest;
+import com.urbanpass.urbanpass.dto.TransactionResponse;
 import com.urbanpass.urbanpass.dto.UserResponse;
 import com.urbanpass.urbanpass.enums.CardStatus;
+import com.urbanpass.urbanpass.enums.TransactionStatus;
 import com.urbanpass.urbanpass.exception.BusinessException;
 import com.urbanpass.urbanpass.exception.GlobalExceptionHandler;
 import com.urbanpass.urbanpass.exception.ResourceNotFoundException;
@@ -20,11 +22,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.awt.print.Pageable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -116,12 +121,24 @@ class UserControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void getAllUsers_shouldReturn200_whenAdmin() throws Exception {
-        when(userService.getAllUsers()).thenReturn(List.of(userResponse));
+        UserResponse tx = UserResponse.builder()
+                .id(1L)
+                .name("Carlos")
+                .email("carlos123@gmail.com")
+                .phone("12345678")
+                .createdAt(LocalDateTime.now())
+                .build();
 
-        mockMvc.perform(get("/api/users"))
+        var page = new PageImpl<>(List.of(tx), PageRequest.of(0, 10), 1);
+        when(userService.getAllUsers(any())).thenReturn(page);
+
+        mockMvc.perform(get("/api/users")
+                        .param("page", "0")
+                        .param("size", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].name").value("Carlos Pérez"));
+                .andExpect(jsonPath("$.content[0].id").value(1))
+                .andExpect(jsonPath("$.content[0].name").value("Carlos"))
+                .andExpect(jsonPath("$.totalElements").value(1));
     }
 
     @Test
@@ -130,7 +147,7 @@ class UserControllerTest {
         mockMvc.perform(get("/api/users"))
                 .andExpect(status().isForbidden());
 
-        verify(userService, never()).getAllUsers();
+        verify(userService, never()).getAllUsers(any());
     }
 
     @Test
