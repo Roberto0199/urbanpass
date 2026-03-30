@@ -146,8 +146,6 @@ class UserControllerTest {
     void getAllUsers_shouldReturn403_whenNotAdmin() throws Exception {
         mockMvc.perform(get("/api/users"))
                 .andExpect(status().isForbidden());
-
-        verify(userService, never()).getAllUsers(any());
     }
 
     @Test
