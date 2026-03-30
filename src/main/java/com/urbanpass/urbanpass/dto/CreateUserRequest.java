@@ -18,3 +18,14 @@ public class CreateUserRequest {
     @Pattern(regexp = "^[0-9]{8}$", message = "Teléfono debe tener 8 dígitos")
     private String phone;
 }
+
+
+
+
+
+
+
+
+
+
+
