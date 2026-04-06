@@ -3,6 +3,8 @@ package com.urbanpass.urbanpass.controller;
 import com.urbanpass.urbanpass.dto.CardResponse;
 import com.urbanpass.urbanpass.dto.CreateUserRequest;
 import com.urbanpass.urbanpass.dto.UserResponse;
+import com.urbanpass.urbanpass.entity.User;
+import com.urbanpass.urbanpass.enums.Role;
 import com.urbanpass.urbanpass.service.CardService;
 import com.urbanpass.urbanpass.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,7 +18,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -67,7 +71,11 @@ public class UserController {
 
     @Operation(summary = "Ver tarjetas de un usuario")
     @GetMapping("/{id}/cards")
-    public ResponseEntity<List<CardResponse>> getUserCards(@PathVariable Long id) {
-        return ResponseEntity.ok(cardService.getCardsByUser(id));
+    public ResponseEntity<List<CardResponse>> getUserCards(@PathVariable Long id, @AuthenticationPrincipal User currentUser) {
+        if (!id.equals(currentUser.getId()) && currentUser.getRole() != Role.ADMIN) {
+            throw new AccessDeniedException("No tienes permiso para ver estas tarjetas.");
+        }
+        List<CardResponse> cards = cardService.getCardsByUser(id);
+        return ResponseEntity.ok(cards);
     }
 }
