@@ -3,6 +3,7 @@ package com.urbanpass.urbanpass.exception;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -101,4 +102,19 @@ public class GlobalExceptionHandler {
                         .build()
         );
     }
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentials(AccessDeniedException ex){
+        log.warn("Acceso denegado: {}", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                ErrorResponse.builder()
+                        .status(HttpStatus.FORBIDDEN.value())
+                        .error("ACCESS_DENIED")
+                        .message("No tienes permiso para ver estas tarjetas.")
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
+    }
+
+
 }
