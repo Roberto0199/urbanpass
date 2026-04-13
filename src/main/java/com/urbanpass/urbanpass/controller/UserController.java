@@ -78,4 +78,10 @@ public class UserController {
         List<CardResponse> cards = cardService.getCardsByUser(id);
         return ResponseEntity.ok(cards);
     }
+    @Operation(summary = "Obtener mi informacion de mi perfil")
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getMyProfile(@AuthenticationPrincipal User currentUser) {
+        UserResponse response = userService.getUserById(currentUser.getId());
+        return ResponseEntity.ok(response);
+    }
 }

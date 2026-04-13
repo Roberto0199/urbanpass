@@ -102,6 +102,7 @@ public class GlobalExceptionHandler {
                         .build()
         );
     }
+    //403 Acceso denegadono
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleBadCredentials(AccessDeniedException ex){
         log.warn("Acceso denegado: {}", ex.getMessage());
